@@ -34,7 +34,7 @@
     
     d is the size of state vector (Here we set d = 4),
     at the step 0, S(-1) is intialized as a vector of zeros
- 
+    
 
 ###How wide should our Tensorflow graph be?
     how wide should our graph be? 
@@ -71,4 +71,8 @@
         is easy to implement by feeding inputs of length [n] at a time and doing backward pass after each iteration.”). 
         This means that we would take our sequence of length 49, break it up into 7 sub-sequences of length 7 that 
         we feed into the graph in 7 separate computations, and that only the errors from the 7th input in each graph are backpropagated the full 7 steps.
+        
+#Use Tensor to represent width
+    
+    
     

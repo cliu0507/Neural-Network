@@ -165,3 +165,5 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
 
 training_losses = train_network(1,num_steps)
 plt.plot(training_losses)
+
+

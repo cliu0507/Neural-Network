@@ -73,6 +73,6 @@
         we feed into the graph in 7 separate computations, and that only the errors from the 7th input in each graph are backpropagated the full 7 steps.
         
 #Use Tensor to represent width
-    
+    http://r2rt.com/static/images/BasicRNNLabeled.png
     
     

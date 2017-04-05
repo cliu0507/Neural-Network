@@ -1,3 +1,4 @@
+#This is for Tensorflow 1.0.0 ++
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
@@ -57,6 +58,7 @@ def gen_epochs(n, num_steps):
         yield gen_batch(gen_data(), batch_size, num_steps)
 
 
+
 """
 Placeholders
 """
@@ -66,35 +68,46 @@ y = tf.placeholder(tf.int32, [batch_size, num_steps], name='labels_placeholder')
 init_state = tf.zeros([batch_size, state_size])
 
 """
-Inputs
+RNN Inputs
 """
 
+# Turn our x placeholder into a list of one-hot tensors:
+# rnn_inputs is a list of num_steps tensors with shape [batch_size, num_classes]
 x_one_hot = tf.one_hot(x, num_classes)
-rnn_inputs = tf.unpack(x_one_hot, axis=1)
+rnn_inputs = tf.unstack(x_one_hot, axis=1)
+
 
 """
 RNN
 """
 
-cell = tf.nn.rnn_cell.BasicRNNCell(state_size)
-rnn_outputs, final_state = tf.nn.rnn(cell, rnn_inputs, initial_state=init_state)
+cell = tf.contrib.rnn.BasicRNNCell(state_size)
+rnn_outputs, final_state = tf.contrib.rnn.static_rnn(cell, rnn_inputs, initial_state=init_state)
+
 
 """
 Predictions, loss, training step
+
+Losses and total_loss are simlar to the "sequence_loss_by_example" and "sequence_loss"
+functions, respectively, from Tensorflow's api. See:
+https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/ops/seq2seq.py
 """
 
+#logits and predictions
 with tf.variable_scope('softmax'):
     W = tf.get_variable('W', [state_size, num_classes])
     b = tf.get_variable('b', [num_classes], initializer=tf.constant_initializer(0.0))
 logits = [tf.matmul(rnn_output, W) + b for rnn_output in rnn_outputs]
 predictions = [tf.nn.softmax(logit) for logit in logits]
 
-y_as_list = [tf.squeeze(i, squeeze_dims=[1]) for i in tf.split(1, num_steps, y)]
+# Turn our y placeholder into a list labels
+y_as_list = [tf.squeeze(i, squeeze_dims=[1]) for i in tf.split(y, num_steps, axis=1)]
 
-loss_weights = [tf.ones([batch_size]) for i in range(num_steps)]
-losses = tf.nn.seq2seq.sequence_loss_by_example(logits, y_as_list, loss_weights)
+#losses and train_step
+losses = [tf.nn.sparse_softmax_cross_entropy_with_logits(labels=label,logits =logit) for logit, label in zip(logits, y_as_list)]
 total_loss = tf.reduce_mean(losses)
 train_step = tf.train.AdagradOptimizer(learning_rate).minimize(total_loss)
+
 
 """
 Function to train the network
@@ -127,6 +140,7 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
     return training_losses
 
 
-training_losses = train_network(1,num_steps)
+training_losses = train_network(1,num_steps,state_size)
 plt.plot(training_losses)
+
 

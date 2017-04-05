@@ -1,18 +1,19 @@
+#This is for Tensorflow 1.0.0 ++
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
 
 
 # Global config variables
-num_steps = 5 # number of truncated backprop steps ('n' in the discussion above)
+num_steps = 20 # number of truncated backprop steps ('n' in the discussion above)
 batch_size = 200
 num_classes = 2
-state_size = 4
+state_size = 12
 learning_rate = 0.1
 
 
 #sample sequence generator
-def gen_data(size=1000000):
+def gen_data(size=100000000):
     #Initialize X, Y
     X = np.array(np.random.choice(2, size=(size,)))
     Y = []
@@ -73,7 +74,7 @@ RNN Inputs
 # Turn our x placeholder into a list of one-hot tensors:
 # rnn_inputs is a list of num_steps tensors with shape [batch_size, num_classes]
 x_one_hot = tf.one_hot(x, num_classes)
-rnn_inputs = tf.unpack(x_one_hot, axis=1)
+rnn_inputs = tf.unstack(x_one_hot, axis=1)
 
 
 """
@@ -90,7 +91,7 @@ def rnn_cell(rnn_input, state):
     with tf.variable_scope('rnn_cell', reuse=True):
         W = tf.get_variable('W', [num_classes + state_size, state_size])
         b = tf.get_variable('b', [state_size], initializer=tf.constant_initializer(0.0))
-    return tf.tanh(tf.matmul(tf.concat(1, [rnn_input, state]), W) + b)
+    return tf.tanh(tf.matmul(tf.concat([rnn_input, state],1), W) + b)
 
 
 """
@@ -123,11 +124,10 @@ logits = [tf.matmul(rnn_output, W) + b for rnn_output in rnn_outputs]
 predictions = [tf.nn.softmax(logit) for logit in logits]
 
 # Turn our y placeholder into a list labels
-y_as_list = [tf.squeeze(i, squeeze_dims=[1]) for i in tf.split(1, num_steps, y)]
+y_as_list = [tf.squeeze(i, squeeze_dims=[1]) for i in tf.split(y, num_steps, axis=1)]
 
 #losses and train_step
-losses = [tf.nn.sparse_softmax_cross_entropy_with_logits(logit,label) for \
-          logit, label in zip(logits, y_as_list)]
+losses = [tf.nn.sparse_softmax_cross_entropy_with_logits(labels=label,logits =logit) for logit, label in zip(logits, y_as_list)]
 total_loss = tf.reduce_mean(losses)
 train_step = tf.train.AdagradOptimizer(learning_rate).minimize(total_loss)
 
@@ -163,7 +163,7 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
     return training_losses
 
 
-training_losses = train_network(1,num_steps)
+training_losses = train_network(1,num_steps,state_size)
 plt.plot(training_losses)
 
 

@@ -13,7 +13,7 @@ learning_rate = 0.1
 
 
 #sample sequence generator
-def gen_data(size=100000000):
+def gen_data(size=1000000):
     #Initialize X, Y
     X = np.array(np.random.choice(2, size=(size,)))
     Y = []
@@ -63,8 +63,11 @@ def gen_epochs(n, num_steps):
 Placeholders
 """
 
-x = tf.placeholder(tf.int32, [batch_size, num_steps], name='input_placeholder')
-y = tf.placeholder(tf.int32, [batch_size, num_steps], name='labels_placeholder')
+#x = tf.placeholder(tf.int32, [batch_size, num_steps], name='input_placeholder')
+#y = tf.placeholder(tf.int32, [batch_size, num_steps], name='labels_placeholder')
+
+x = tf.placeholder(tf.int32, [None, num_steps], name='input_placeholder')
+y = tf.placeholder(tf.int32, [None, num_steps], name='labels_placeholder')
 init_state = tf.zeros([batch_size, state_size])
 
 """

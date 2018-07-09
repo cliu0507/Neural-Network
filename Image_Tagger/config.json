@@ -1,0 +1,51 @@
+{
+
+    "Records": [
+        {
+            "keywords": "dog OR dogs OR Dog OR Dogs OR DOGS",
+            "image_directory" : "dog",
+            "limit": 2000,
+            "format": "jpg",
+            "prefix":"dog_",
+            "print_urls": false,
+            "output_directory": "./data/"
+        },
+        {
+            "keywords": "cat OR cats OR Cat OR Cats OR CAT OR CATS",
+            "image_directory" : "cat",
+            "limit": 2000,
+            "format": "jpg",
+            "prefix":"cat_",
+            "print_urls": false,
+            "output_directory": "./data/"
+        },
+        {
+            "keywords": "tiger OR tigers OR Tiger OR Tigers OR TIGER OR TIGERS",
+            "image_directory" : "tiger",
+            "limit": 2000,
+            "format": "jpg",
+            "prefix":"tiger_",
+            "print_urls": false,
+            "output_directory": "./data/"
+        },
+        {
+            "keywords": "elephant OR Elephant OR ELEPHANT OR ELEPHANTS",
+            "image_directory" : "elephant",
+            "limit": 2000,
+            "format": "jpg",
+            "prefix":"elephant_",
+            "print_urls": false,
+            "output_directory": "./data/"
+        },
+        {
+            "keywords": "lion OR lions OR Lion OR Lions OR LION OR LIONS",
+            "image_directory" : "lion",
+            "limit": 2000,
+            "format": "jpg",
+            "prefix":"lion_",
+            "print_urls": false,
+            "output_directory": "./data/"
+        }
+
+    ]
+}

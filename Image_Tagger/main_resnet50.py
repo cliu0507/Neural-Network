@@ -47,6 +47,7 @@ x = base_model.output
 x = GlobalAveragePooling2D()(x)
 #Add a fully connected layer
 x = Dense(100, activation='relu')(x)
+x = Dropout(0.5)(x)
 pred = Dense(num_classes, activation='softmax')(x)
 model = Model(inputs=base_model.input, outputs=pred)
 
@@ -86,6 +87,6 @@ model.fit_generator(
 if not os.path.isdir(save_dir):
     os.makedirs(save_dir)
 model_path = os.path.join(save_dir, model_name)
-model.save(model_path)
+#model.save(model_path)
 print('Saved trained model at %s ' % model_path)
 

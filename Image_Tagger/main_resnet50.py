@@ -12,7 +12,7 @@ from keras.optimizers import SGD
 
 batch_size = 64
 num_classes = 5
-epochs = 50
+epochs = 20
 save_dir = os.path.join(os.getcwd(), 'saved_models')
 model_name = 'keras_cliu_resnet50_trained_model.h5'
 
@@ -46,7 +46,7 @@ base_model = ResNet50(weights='imagenet', include_top=False)
 x = base_model.output
 x = GlobalAveragePooling2D()(x)
 #Add a fully connected layer
-x = Dense(1024, activation='relu')(x)
+x = Dense(100, activation='relu')(x)
 pred = Dense(num_classes, activation='softmax')(x)
 model = Model(inputs=base_model.input, outputs=pred)
 

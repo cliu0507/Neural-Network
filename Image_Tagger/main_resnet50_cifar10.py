@@ -11,10 +11,11 @@ from keras.utils import plot_model
 from keras.optimizers import SGD
 from keras.utils import to_categorical
 from PIL import Image
+import cv2
 
-batch_size = 64
-num_classes = 5
-epochs = 20
+batch_size = 100
+num_classes = 10
+epochs = 50
 save_dir = os.path.join(os.getcwd(), 'saved_models')
 model_name = 'keras_cliu_resnet50_trained_model_cifar10.h5'
 
@@ -39,6 +40,10 @@ def write_png(x,y,label_mapping_dict,folder_path):
 		pngid_for_label_dict[label] = 0
 
 	print(pngid_for_label_dict)
+
+	#create path if not exists
+	if not os.path.exists(folder_path):
+		os.makedirs(folder_path)
 
 	for (imagearray,labelid) in zip(x,y):
 		im = Image.fromarray(imagearray)
@@ -110,21 +115,31 @@ x_train = np.reshape(x_train,newshape=(-1,3,32,32))
 x_train = np.moveaxis(x_train,1,-1)
 
 
-#write train png image to each class subfolder
-write_png(x_train,y_train,label_mapping_dict=cifar10_label_mapping,folder_path="./cifar-10-batches-pngs")
+x_train_resize = []
+#Resize to 224
+i = 0
+for sample in x_train:
+	print(i)
+	x_train_resize.append(cv2.resize(sample, (224, 224)))
+	i+=1
+x_train_resize = np.array(x_train_resize)
 
-'''
+#write train png image to each class subfolder
+#write_png(x_train,y_train,label_mapping_dict=cifar10_label_mapping,folder_path="./cifar-10-batches-pngs")
+
+
 #Load the resnet50 exclude last couple fcn layers
-base_model = ResNet50(weights='imagenet', include_top=False)
+base_model = ResNet50(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
 
 x = base_model.output
 x = GlobalAveragePooling2D()(x)
 #Add a fully connected layer
 x = Dense(100, activation='relu')(x)
+x = Dropout(0.5)(x)
 pred = Dense(num_classes, activation='softmax')(x)
 model = Model(inputs=base_model.input, outputs=pred)
 
-plot_model(model, to_file='convolutional_neural_network_resnet50.png')
+#plot_model(model, to_file='convolutional_neural_network_resnet50.png')
 
 for i, layer in enumerate(model.layers):
    print(i, layer.name)
@@ -136,10 +151,15 @@ for layer in base_model.layers:
 
 print(model.summary())
 model.compile(optimizer='rmsprop', loss='categorical_crossentropy',metrics=['accuracy'])
-model.fit_generator(
-		train_generator,
+model.fit(
+		x=x_train_resize,
+		y=y_train_one_hot,
 		epochs=epochs,
-		validation_data=validation_generator)
+		validation_split=0.3,
+		shuffle = True,
+		validation_data=None)
+
+
 
 # Second, we fine tune top inception blocks, i.e. we will freeze
 # the first hundreds of layers and unfreeze the rest:
@@ -151,15 +171,18 @@ for layer in model.layers[164:]:
 
 print(model.summary())
 model.compile(optimizer=SGD(lr=0.0001, momentum=0.9), loss='categorical_crossentropy',metrics=['accuracy'])
-model.fit_generator(
-		train_generator,
+model.fit(
+		x=x_train_resize,
+		y=y_train_one_hot,
 		epochs=epochs,
-		validation_data=validation_generator)
+		validation_split=0.3,
+		shuffle = True,
+		validation_data=None)
 
 # Save model and weights
 if not os.path.isdir(save_dir):
 	os.makedirs(save_dir)
 model_path = os.path.join(save_dir, model_name)
-model.save(model_path)
+#model.save(model_path)
 print('Saved trained model at %s ' % model_path)
-'''
+

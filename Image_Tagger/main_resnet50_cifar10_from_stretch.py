@@ -119,7 +119,7 @@ x_train_resize = []
 #Resize to 224
 i = 0
 for sample in x_train:
-	print(i)
+	#print(i)
 	x_train_resize.append(cv2.resize(sample, (224, 224)))
 	i+=1
 x_train_resize = np.array(x_train_resize)
@@ -129,7 +129,7 @@ x_train_resize = np.array(x_train_resize)
 
 
 #Load the resnet50 exclude last couple fcn layers
-base_model = ResNet50(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
+base_model = ResNet50(weights=None, include_top=False, input_shape=(224, 224, 3))
 
 x = base_model.output
 x = Flatten()(x)
@@ -147,8 +147,6 @@ for i, layer in enumerate(model.layers):
 
 # first: train only the top layers (which were randomly initialized)
 # i.e. freeze all convolutional ResNet layers
-for layer in base_model.layers:
-	layer.trainable = False
 
 print(model.summary())
 model.compile(optimizer='rmsprop', loss='categorical_crossentropy',metrics=['accuracy'])
@@ -160,25 +158,6 @@ model.fit(
 		shuffle = True,
 		validation_data=None)
 
-
-
-# Second, we fine tune top inception blocks, i.e. we will freeze
-# the first hundreds of layers and unfreeze the rest:
-
-for layer in model.layers[:164]:
-   layer.trainable = False
-for layer in model.layers[164:]:
-   layer.trainable = True
-
-print(model.summary())
-model.compile(optimizer=SGD(lr=0.0001, momentum=0.9), loss='categorical_crossentropy',metrics=['accuracy'])
-model.fit(
-		x=x_train_resize,
-		y=y_train_one_hot,
-		epochs=epochs,
-		validation_split=0.3,
-		shuffle = True,
-		validation_data=None)
 
 # Save model and weights
 if not os.path.isdir(save_dir):

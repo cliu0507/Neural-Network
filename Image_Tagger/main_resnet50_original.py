@@ -51,7 +51,7 @@ x = Dropout(0.5)(x)
 pred = Dense(num_classes, activation='softmax')(x)
 model = Model(inputs=base_model.input, outputs=pred)
 
-plot_model(model, to_file='convolutional_neural_network_resnet50.png')
+plot_model(model, to_file='./visualization/convolutional_neural_network_resnet50.png')
 
 for i, layer in enumerate(model.layers):
    print(i, layer.name)
@@ -66,6 +66,7 @@ model.compile(optimizer='rmsprop', loss='categorical_crossentropy',metrics=['acc
 model.fit_generator(
         train_generator,
         epochs=epochs,
+        verbose=2,
         validation_data=validation_generator)
 
 # Second, we fine tune top inception blocks, i.e. we will freeze
@@ -81,6 +82,7 @@ model.compile(optimizer=SGD(lr=0.0001, momentum=0.9), loss='categorical_crossent
 model.fit_generator(
         train_generator,
         epochs=epochs,
+        verbose=2,
         validation_data=validation_generator)
 
 # Save model and weights

@@ -154,6 +154,7 @@ model.fit(
 		x=x_train_resize,
 		y=y_train_one_hot,
 		epochs=epochs,
+		verbose=2,
 		validation_split=0.3,
 		shuffle = True,
 		validation_data=None)

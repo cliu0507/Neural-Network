@@ -1,4 +1,17 @@
-#This is the fine tune of resnet
+'''
+ResNet 50 on Cifar
+
+Dataset: Cifar10 - 10 classes
+
+Will train a model from sketch 
+Use Flatten or GlobalAveragePooling + Dropout + Softmax for classifier layers
+
+Result:
+
+
+'''
+
+
 import numpy as np
 import pickle
 import os

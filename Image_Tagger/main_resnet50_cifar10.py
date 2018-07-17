@@ -1,4 +1,16 @@
-#This is the fine tune of resnet
+'''
+Pretrained ResNet 50 on ImageNet
+
+Dataset: Cifar10 - 10 classes
+
+Use Flatten or GlobalAveragePooling + Dropout + Softmax for classifier layers
+
+Result:
+Training Accuracy: 0.90 +
+Validation Accuracy : <= 0.70 (0.70 at best)
+
+'''
+
 import numpy as np
 import pickle
 import os

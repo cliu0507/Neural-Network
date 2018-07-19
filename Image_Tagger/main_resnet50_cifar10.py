@@ -18,16 +18,17 @@ from keras.applications.resnet50 import ResNet50
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Model
 from keras.layers import Dense, Dropout, Activation, Flatten, Input
-from keras.layers import Conv2D, MaxPooling2D,GlobalAveragePooling2D
+from keras.layers import Conv2D, MaxPooling2D,GlobalAveragePooling2D,AveragePooling2D
 from keras.utils import plot_model
-from keras.optimizers import SGD
+from keras.optimizers import SGD,RMSprop
 from keras.utils import to_categorical
+from keras.callbacks import TensorBoard
 from PIL import Image
 import cv2
 
 batch_size = 100
 num_classes = 10
-epochs = 50
+epochs = 100
 save_dir = os.path.join(os.getcwd(), 'saved_models')
 model_name = 'keras_cliu_resnet50_trained_model_cifar10.h5'
 
@@ -131,7 +132,6 @@ x_train_resize = []
 #Resize to 224
 i = 0
 for sample in x_train:
-	print(i)
 	x_train_resize.append(cv2.resize(sample, (224, 224)))
 	i+=1
 x_train_resize = np.array(x_train_resize)
@@ -144,26 +144,28 @@ x_train_resize = np.array(x_train_resize)
 base_model = ResNet50(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
 
 x = base_model.output
+x = AveragePooling2D()(x)
 x = Flatten()(x)
-#x = GlobalAveragePooling2D()(x)
-#Add a fully connected layer
-x = Dense(100, activation='relu')(x)
-x = Dropout(0.5)(x)
+x = Dense(1024, activation='relu',name='fc1024')(x)
 pred = Dense(num_classes, activation='softmax')(x)
 model = Model(inputs=base_model.input, outputs=pred)
 
 #plot_model(model, to_file='convolutional_neural_network_resnet50.png')
 
-for i, layer in enumerate(model.layers):
-   print(i, layer.name)
 
 # first: train only the top layers (which were randomly initialized)
 # i.e. freeze all convolutional ResNet layers
 for layer in base_model.layers:
 	layer.trainable = False
+for layer in model.layers:
+    print(layer, layer.trainable)
 
-print(model.summary())
-model.compile(optimizer='rmsprop', loss='categorical_crossentropy',metrics=['accuracy'])
+
+tensorboard = TensorBoard(log_dir='./logs_transfer_learning')
+
+optimizer=RMSprop(lr=1e-2)
+
+model.compile(optimizer=optimizer, loss='categorical_crossentropy',metrics=['accuracy'])
 model.fit(
 		x=x_train_resize,
 		y=y_train_one_hot,
@@ -171,19 +173,26 @@ model.fit(
 		verbose=2,
 		validation_split=0.3,
 		shuffle = True,
-		validation_data=None)
+		validation_data=None,
+		callbacks = [tensorboard])
 
 
 
 # Second, we fine tune top inception blocks, i.e. we will freeze
 # the first hundreds of layers and unfreeze the rest:
 
-for layer in model.layers[:164]:
+for layer in model.layers[:140]:
    layer.trainable = False
-for layer in model.layers[164:]:
+for layer in model.layers[140:]:
    layer.trainable = True
 
-print(model.summary())
+
+for layer in model.layers:
+    print(layer, layer.trainable)
+
+
+tensorboard = TensorBoard(log_dir='./logs_transfer_learning_fine_tune')
+
 model.compile(optimizer=SGD(lr=0.0001, momentum=0.9), loss='categorical_crossentropy',metrics=['accuracy'])
 model.fit(
 		x=x_train_resize,
@@ -192,7 +201,8 @@ model.fit(
 		verbose=2,
 		validation_split=0.3,
 		shuffle = True,
-		validation_data=None)
+		validation_data=None,
+		callbacks = [tensorboard])
 
 # Save model and weights
 if not os.path.isdir(save_dir):

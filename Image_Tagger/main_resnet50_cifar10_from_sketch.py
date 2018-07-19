@@ -15,14 +15,15 @@ Result:
 import numpy as np
 import pickle
 import os
+import time
 from keras.applications.resnet50 import ResNet50
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Model
 from keras.layers import Dense, Dropout, Activation, Flatten, Input
 from keras.layers import Conv2D, MaxPooling2D,GlobalAveragePooling2D
-from keras.utils import plot_model
-from keras.optimizers import SGD
-from keras.utils import to_categorical
+from keras.utils import plot_model,to_categorical
+from keras.optimizers import SGD,RMSprop
+from keras.callbacks import TensorBoard
 from PIL import Image
 import cv2
 
@@ -105,6 +106,27 @@ cifar10_label_mapping = {
 }
 
 
+
+#write train png image to each class subfolder
+#write_png(x_train,y_train,label_mapping_dict=cifar10_label_mapping,folder_path="./cifar-10-batches-pngs")
+
+#x = GlobalAveragePooling2D()(x)
+#Add a fully connected layer
+
+#Load the resnet50 exclude last couple fcn layers
+base_model = ResNet50(weights=None, include_top=False, input_shape=(224, 224, 3))
+x = base_model.output
+x = AveragePooling2D((7, 7), name='avg_pool')(x)
+x = Flatten()(x)
+pred = Dense(num_classes, activation='softmax',name='fc10')(x)
+model = Model(inputs=base_model.input, outputs=pred)
+optimizer=RMSprop(lr=1e-4)
+
+
+model.compile(optimizer=optimizer, loss='categorical_crossentropy',metrics=['accuracy'])
+plot_model(model, to_file='convolutional_neural_network_resnet50.png')
+print(model.summary())
+
 #Read all data files
 x_train_list = []
 y_train_list = []
@@ -137,40 +159,25 @@ for sample in x_train:
 	i+=1
 x_train_resize = np.array(x_train_resize)
 
-#write train png image to each class subfolder
-#write_png(x_train,y_train,label_mapping_dict=cifar10_label_mapping,folder_path="./cifar-10-batches-pngs")
 
 
-#Load the resnet50 exclude last couple fcn layers
-base_model = ResNet50(weights=None, include_top=False, input_shape=(224, 224, 3))
 
-x = base_model.output
-x = Flatten()(x)
-#x = GlobalAveragePooling2D()(x)
-#Add a fully connected layer
-x = Dense(100, activation='relu')(x)
-x = Dropout(0.5)(x)
-pred = Dense(num_classes, activation='softmax')(x)
-model = Model(inputs=base_model.input, outputs=pred)
+#print out each layer and see which layers are trainable
+for layer in model.layers:
+    print(layer, layer.trainable)
 
-#plot_model(model, to_file='convolutional_neural_network_resnet50.png')
 
-for i, layer in enumerate(model.layers):
-   print(i, layer.name)
+tensorboard = TensorBoard(log_dir='./logs_transfer_learning')
 
-# first: train only the top layers (which were randomly initialized)
-# i.e. freeze all convolutional ResNet layers
-
-print(model.summary())
-model.compile(optimizer='rmsprop', loss='categorical_crossentropy',metrics=['accuracy'])
 model.fit(
 		x=x_train_resize,
 		y=y_train_one_hot,
 		epochs=epochs,
-		verbose=2,
+		verbose=1,
 		validation_split=0.3,
 		shuffle = True,
-		validation_data=None)
+		validation_data=None,
+		callbacks = [tensorboard])
 
 
 # Save model and weights

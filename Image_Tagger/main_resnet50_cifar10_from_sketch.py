@@ -11,6 +11,9 @@ Result:
 
 '''
 
+import os
+#os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
+#os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 import numpy as np
 import pickle
@@ -118,14 +121,14 @@ base_model = ResNet50(weights=None, include_top=False, input_shape=(224, 224, 3)
 x = base_model.output
 x = AveragePooling2D((7, 7), name='avg_pool')(x)
 x = Flatten()(x)
+x = Dropout(0.5)(x)
+x = Dense(100, activation='relu')(x)
 pred = Dense(num_classes, activation='softmax',name='fc10')(x)
 model = Model(inputs=base_model.input, outputs=pred)
-optimizer=RMSprop(lr=1e-4)
+optimizer=RMSprop(lr=1e-3)
 
 
 model.compile(optimizer=optimizer, loss='categorical_crossentropy',metrics=['accuracy'])
-plot_model(model, to_file='convolutional_neural_network_resnet50.png')
-print(model.summary())
 
 #Read all data files
 x_train_list = []
@@ -167,7 +170,7 @@ for layer in model.layers:
     print(layer, layer.trainable)
 
 
-tensorboard = TensorBoard(log_dir='./logs_transfer_learning')
+tensorboard = TensorBoard(log_dir='./logs_sketch')
 
 model.fit(
 		x=x_train_resize,

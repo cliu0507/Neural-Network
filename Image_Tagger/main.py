@@ -63,7 +63,7 @@ cifar10_label_mapping = {
 	9:"truck"
 }
 
-'''
+
 #-------------------------------
 #Prepare X and Y
 #Read all data files
@@ -89,30 +89,38 @@ x_train = np.reshape(x_train,newshape=(-1,3,32,32))
 x_train = np.moveaxis(x_train,1,-1)
 
 
+#Actually we don't need to resize it to 224 * 224 for resnet
+
+'''
+print("Resize the image to 224*224")
 x_train_resize = []
 #Resize to 224
 i = 0
 for sample in x_train:
+	if i % 1000 == 0:
+		print(i)
 	x_train_resize.append(cv2.resize(sample, (224, 224)))
 	i+=1
 x_train_resize = np.array(x_train_resize)
 '''
-
+x_train_resize = x_train
+print("Data Preparation Done!")
 
 #-------------------------------
 #Model Training
 #Search learning rate
 for transfer_learning in [False,True]:
-	for model_name in ['ResNet50','DenseNet121']:
-		for learning_rate in [1e-2,1e-3,1e-4]:
-			for use_dropout in [False,True]:
-				for top_layer_num_fc in [0,1,2]:
+	for model_name in ['ResNet50']:
+		for learning_rate in [1e-3,1e-4]:
+			for use_dropout in [False]:
+				for top_layer_num_fc in [1,0]:
 					for optimizer_name in ['RMSprop']:
 						#if we want to use pretrained model for transfer learning
 						weights='imagenet' if transfer_learning else None
 						
 						#which base model do we use
-						base_model = globals()[model_name](weights=weights, include_top=False, input_shape=(224, 224, 3))
+						#base_model = globals()[model_name](weights=weights, include_top=False, input_shape=(224, 224, 3))
+						base_model = globals()[model_name](weights=weights, include_top=False,input_shape=(32, 32, 3))
 						x = base_model.output
 						x = AveragePooling2D((7, 7), name='avg_pool')(x)
 						x = Flatten()(x)
@@ -149,18 +157,18 @@ for transfer_learning in [False,True]:
 						print(run_name)
 						
 						#Set tensorboard log folder for individual run
-						logdir='./logs/'+str(run_name)
+						logdir='./logs_new/'+str(run_name)
 						tensorboard = TensorBoard(log_dir=logdir)
-						'''
+						
 						model.fit(
 							x=x_train_resize,
 							y=y_train_one_hot,
 							epochs=epochs,
-							verbose=2,
+							verbose=1,
 							validation_split=0.3,
 							shuffle = True,
 							validation_data=None,
 							callbacks = [tensorboard])
-						'''
+						
 
 print("Done")

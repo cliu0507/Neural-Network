@@ -28,6 +28,9 @@ from PIL import Image
 import tensorflow as tf
 import cv2
 
+
+
+
 batch_size = 100
 num_classes = 10
 epochs = 50
@@ -105,6 +108,12 @@ x_train_resize = np.array(x_train_resize)
 '''
 x_train_resize = x_train
 print("Data Preparation Done!")
+
+
+
+
+
+
 
 #-------------------------------
 #Model Training

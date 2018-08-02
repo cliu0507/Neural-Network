@@ -286,10 +286,11 @@ optimizer=Adam(lr_scheduler(0))
 model.compile(optimizer=optimizer, loss='categorical_crossentropy',metrics=['accuracy'])
 
 
+plot_model(model, to_file='convolutional_neural_network_resnet50.png')
 
 #-------------------------------
 #Set callbacks for each epoch
-tensorboard = TensorBoard(log_dir='./logs_chang_resnet_general')
+tensorboard = TensorBoard(log_dir='./logs_test')
 checkpoint = ModelCheckpoint(filepath=filepath,
 							 monitor='val_acc',
 							 verbose=1,

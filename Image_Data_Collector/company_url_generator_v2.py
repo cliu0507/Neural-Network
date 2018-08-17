@@ -11,18 +11,37 @@ company_url_set=set()
 #read csv
 f_company_url = open('./company_url_v2.txt','r')
 for line in f_company_url:
-	company_url_set.add(str(line))
+	company_url_set.add(str(line).rstrip())
 f_company_url.close()
 
 
-company_url_list = []
 browser = webdriver.Chrome(executable_path='./chromedriver')
 f_company_url = open('./company_url_v2.txt','a')
-url='https://moat.com/advertiser/adobe?utm_source=random-brand'
+url='https://moat.com/advertiser/estee-lauder-companies?utm_source=random-brand'
 
 related_brand_list = []
-random_brand_list = None
 
+#Click first random brand to start searching
+browser.get(url)
+random_brand = browser.find_element_by_link_text('Random Brand')
+random_brand.click()
+url=browser.current_url
+print("random brand:")
+#Parse url to non-random suffix
+#example random brand url : https://moat.com/advertiser/flir?utm_source=random-brand
+try:
+	url = url.split("?")[0]
+	if url not in company_url_set:
+		print(url)
+		company_url_set.add(url)
+		f_company_url.write(url+'\n')
+		f_company_url.flush()
+except:
+	pass
+time.sleep(1.5)
+
+
+#DFS and random search
 while True:
 	browser.get(url)
 	assert 'Moat' in browser.title
@@ -47,7 +66,6 @@ while True:
 		#Click related brand
 		related_brand.click()
 		url=browser.current_url
-		company_url_list.append(url)
 		print("related brand:")
 		if url not in company_url_set:
 			print(url)
@@ -69,7 +87,6 @@ while True:
 		random_brand = browser.find_element_by_link_text('Random Brand')
 		random_brand.click()
 		url=browser.current_url
-		company_url_list.append(url)
 		print("random brand:")
 		#Parse url to non-random suffix
 		#example random brand url : https://moat.com/advertiser/flir?utm_source=random-brand
@@ -90,7 +107,8 @@ while True:
 		related_brand.click()
 		url=browser.current_url
 		print("dfs brand:")
-		print(url)
+		if url not in company_url_set:
+			print(url)
 		time.sleep(1.5)
 
 browser.quit()

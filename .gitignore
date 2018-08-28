@@ -3,3 +3,6 @@ Image_Tagger/saved_models
 Image_Tagger/cifar-10-batches-pngs
 Image_Tagger/cifar-10-batches-py
 convolutional_neural_network_resnet50.png
+Logo_Detection/saved_models
+data.zip
+Logo_Detection/logs

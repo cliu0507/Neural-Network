@@ -2,7 +2,7 @@ import requests
 import shutil
 import time
 
-i = 24530
+i = 0
 while i<100000:
 	response = requests.get('https://picsum.photos/400/400/?random',stream=True)
 	filepath = "./natural_image/"+str(i) + '.jpeg'

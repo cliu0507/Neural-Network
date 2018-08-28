@@ -149,15 +149,15 @@ def lr_scheduler(epoch):
 	elif epoch > 100:
 		lr = 1e-5
 	print('Learning rate: ', lr)
-	return lr
+	return lr * 10
 
 
 
 #-------------------------------
 #start main function
 
-batch_size = 100
-num_classes = 3
+batch_size = 50
+num_classes = 5
 epochs = 300
 image_shape=(32,32,3) #channel last
 

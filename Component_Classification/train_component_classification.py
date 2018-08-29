@@ -157,7 +157,7 @@ def lr_scheduler(epoch):
 #start main function
 
 batch_size = 50
-num_classes = 5
+num_classes = 4
 epochs = 300
 image_shape=(32,32,3) #channel last
 

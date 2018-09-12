@@ -28,6 +28,8 @@ from keras.callbacks import TensorBoard,ModelCheckpoint, LearningRateScheduler,R
 import keras.backend as K
 from keras.preprocessing.image import ImageDataGenerator
 from keras.applications.resnet50 import ResNet50
+from keras.applications.resnet50 import preprocess_input
+
 
 #Learning Rate scheduler function
 def lr_scheduler(epoch):
@@ -69,9 +71,9 @@ image_shape=(224,224,3) #channel last
 
 
 # Prepare model model saving directory.
-save_dir = os.path.join(os.getcwd(), 'saved_models')
-#model_name = 'logo_detection_ResNet_model.{epoch:03d}-{val_loss:.4f}.hdf5'
-model_name = 'logo_detection_ResNet_model.{epoch:03d}-{val_acc:.4f}.hdf5'
+save_dir = os.path.join(os.getcwd(), 'saved_models_fine_tune_imagenet_resnet50')
+#model_name = 'component_classification_ResNet_model.{epoch:03d}-{val_loss:.4f}.hdf5'
+model_name = 'component_classification_ResNet_model.{epoch:03d}-{val_acc:.4f}.hdf5'
 
 if not os.path.isdir(save_dir):
 	os.makedirs(save_dir)
@@ -90,13 +92,12 @@ base_model = ResNet50(weights='imagenet',include_top=False,input_shape=(224, 224
 
 x = base_model.output
 x = GlobalAveragePooling2D()(x)
-x = Dense(1024,activation='relu')(x)
-x = Dropout(0.5)(x)
-x = Dense(512,activation='relu')(x)
 outputs = Dense(num_classes,activation='softmax',kernel_initializer='he_normal')(x)
 
-for layer in base_model.layers[:-10]:
+
+for layer in base_model.layers[:-2]:
     layer.trainable = False
+
 
 model = Model(inputs=base_model.input,outputs=outputs)
 
@@ -139,7 +140,8 @@ datagen = ImageDataGenerator(
         height_shift_range=0.2,
         zoom_range=0.2,
         horizontal_flip=True,
-        data_format = "channels_last"
+        data_format = "channels_last",
+        preprocessing_function=preprocess_input
         )
 
 train_generator = datagen.flow_from_directory(

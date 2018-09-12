@@ -71,7 +71,7 @@ How to compute the total layers of an Official ResNet50: (Assume input size is (
 '''
 
 
-def resnet_layer_for_cifar10(
+def resnet_layer(
 	inputs,
 	filters,
 	block,
@@ -141,33 +141,43 @@ def lr_scheduler(epoch):
 	# Returns
 		lr (float32): learning rate
 	"""
-	lr = 5e-4
-	if epoch > 200:
-		lr = 1e-7
-	elif epoch > 150:
+	lr = 1e-3
+	if epoch > 150:
 		lr = 1e-6
 	elif epoch > 100:
 		lr = 1e-5
+	elif epoch > 50:
+		lr = 1e-4
 	print('Learning rate: ', lr)
-	return lr * 10
+	return lr
+
 
 
 
 #-------------------------------
-#start main function
+#Get the classname and id
+from glob import glob
+class_names = glob("./data/train/*") # Reads all the folders in which images are present
+class_names = sorted(class_names) # Sorting them
+name_id_map = dict(zip(class_names, range(len(class_names))))
+print(name_id_map)
 
+
+#start main function
 batch_size = 50
-num_classes = 4
-epochs = 300
+num_classes = len(name_id_map)
+epochs = 200
 image_shape=(32,32,3) #channel last
+
 
 # Prepare model model saving directory.
 save_dir = os.path.join(os.getcwd(), 'saved_models')
-model_name = 'logo_detection_ResNet_model.{epoch:03d}-{val_loss:.2f}.hdf5'
+#model_name = 'component_classifer.{epoch:03d}-{val_loss:.4f}.hdf5'
+model_name = 'component_classifer.{epoch:03d}-{val_acc:.4f}.hdf5'
+
 if not os.path.isdir(save_dir):
 	os.makedirs(save_dir)
 filepath = os.path.join(save_dir, model_name)
-
 
 
 
@@ -177,17 +187,17 @@ filepath = os.path.join(save_dir, model_name)
 
 inputs = Input(shape=image_shape)
 x = Conv2D(16,(3,3),strides=1,padding='same',kernel_initializer='he_normal',name='conv1')(inputs)
-x = resnet_layer_for_cifar10(inputs=x,filters=[16,16],stage=1,block='a')
-x = resnet_layer_for_cifar10(inputs=x,filters=[16,16],stage=1,block='b')
-x = resnet_layer_for_cifar10(inputs=x,filters=[16,16],stage=1,block='c')
+x = resnet_layer(inputs=x,filters=[16,16],stage=1,block='a')
+x = resnet_layer(inputs=x,filters=[16,16],stage=1,block='b')
+x = resnet_layer(inputs=x,filters=[16,16],stage=1,block='c')
 
-x = resnet_layer_for_cifar10(inputs=x,filters=[32,32],stage=2,block='a')
-x = resnet_layer_for_cifar10(inputs=x,filters=[32,32],stage=2,block='b')
-x = resnet_layer_for_cifar10(inputs=x,filters=[32,32],stage=2,block='c')
+x = resnet_layer(inputs=x,filters=[32,32],stage=2,block='a')
+x = resnet_layer(inputs=x,filters=[32,32],stage=2,block='b')
+x = resnet_layer(inputs=x,filters=[32,32],stage=2,block='c')
 
-x = resnet_layer_for_cifar10(inputs=x,filters=[64,64],stage=3,block='a')
-x = resnet_layer_for_cifar10(inputs=x,filters=[64,64],stage=3,block='b')
-x = resnet_layer_for_cifar10(inputs=x,filters=[64,64],stage=3,block='c')
+x = resnet_layer(inputs=x,filters=[64,64],stage=3,block='a')
+x = resnet_layer(inputs=x,filters=[64,64],stage=3,block='b')
+x = resnet_layer(inputs=x,filters=[64,64],stage=3,block='c')
 
 x = AveragePooling2D(pool_size=8)(x)
 x = Flatten()(x)
@@ -218,41 +228,35 @@ callbacks = [tensorboard,checkpoint,reduce_lr,schedule_lr]
 datagen = ImageDataGenerator(
         rescale=1./255,
         shear_range=0.2,
+        width_shift_range=0.2,
+        height_shift_range=0.2,
         zoom_range=0.2,
         horizontal_flip=True,
-        data_format = "channels_last",
-        validation_split=0.3)
+        data_format = "channels_last"
+        )
 
 train_generator = datagen.flow_from_directory(
-        'data',
+        'data/train',
         target_size=(32, 32),
         batch_size=batch_size,
-        class_mode='categorical',
-        subset = 'training')
+        class_mode='categorical'
+        )
 
 print(train_generator.class_indices)
 
 validation_generator = datagen.flow_from_directory(
-        'data',
+        'data/test',
         target_size=(32, 32),
         batch_size=batch_size,
-        class_mode='categorical',
-        subset = 'validation')
+        class_mode='categorical'
+        )
 
-print(validation_generator.class_indices)
 
 model.fit_generator(
         train_generator,
-        steps_per_epoch=500,
         epochs=epochs,
         validation_data=validation_generator,
-        validation_steps=500,
         callbacks=callbacks)
-
-from glob import glob
-class_names = glob("./data/*") # Reads all the folders in which images are present
-class_names = sorted(class_names) # Sorting them
-name_id_map = dict(zip(class_names, range(len(class_names))))
 
 
 print("ResNet Training Done")

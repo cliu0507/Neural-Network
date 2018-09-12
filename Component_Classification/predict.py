@@ -31,7 +31,7 @@ cifar10_label_mapping = {
 
 
 global model
-model = load_model('./saved_models/logo_detection_ResNet_model.027-1.00.hdf5')
+model = load_model('./saved_models/best_4_class_0.8487.hdf5')
 
 
 def predict(imgpath):
@@ -43,11 +43,13 @@ def predict(imgpath):
 	np.set_printoptions(formatter={'float': '{: 0.6f}'.format})
 	for class_name,prob in zip(cifar10_label_mapping.values(),result):
 		print(class_name, "{:.10f}".format(prob* 100) + '%')
-	
-print("Use some logo jpgs to test")
-predict('1.png')
 
-
-print("\n")
-print("Use some non logo jpgs to test")
-predict('neg1.png')
+while True:
+	filename = input('Press enter the layer png filename:')
+	try:
+		if '.png' in filename or '.jpg' in filename:
+			predict(filename)
+		else:
+			predict(filename+".png")
+	except Exception:
+		print("no such file")

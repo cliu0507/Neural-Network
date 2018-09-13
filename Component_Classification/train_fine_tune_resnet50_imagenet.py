@@ -72,7 +72,6 @@ image_shape=(224,224,3) #channel last
 
 # Prepare model model saving directory.
 save_dir = os.path.join(os.getcwd(), 'saved_models_fine_tune_imagenet_resnet50')
-#model_name = 'component_classification_ResNet_model.{epoch:03d}-{val_loss:.4f}.hdf5'
 model_name = 'component_classification_ResNet_model.{epoch:03d}-{val_acc:.4f}.hdf5'
 
 if not os.path.isdir(save_dir):
@@ -94,10 +93,11 @@ x = base_model.output
 x = GlobalAveragePooling2D()(x)
 outputs = Dense(num_classes,activation='softmax',kernel_initializer='he_normal')(x)
 
-
+'''
+#current knowledge is that we need to unlock all layers
 for layer in base_model.layers[:-2]:
     layer.trainable = False
-
+'''
 
 model = Model(inputs=base_model.input,outputs=outputs)
 

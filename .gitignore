@@ -14,3 +14,4 @@ Component_Classification/evaluation
 Component_Classification/saved_models
 data_backup
 Component_Classification/logs
+Component_Classification/saved_models_train_on_imagenet

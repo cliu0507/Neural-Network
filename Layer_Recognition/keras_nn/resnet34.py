@@ -76,4 +76,5 @@ def nn_base(input_tensor=None, input_shape = (None,None,3),trainable = True):
 	x = conv_block(input_tensor=x,filters=[64,64],stage=3,block='a',trainable=trainable)
 	x = conv_block(input_tensor=x,filters=[64,64],stage=3,block='b',trainable=trainable)
 	x = conv_block(input_tensor=x,filters=[64,64],stage=3,block='c',trainable=trainable)
+	x = GlobalAveragePooling2D()(x)
 	return x

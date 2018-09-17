@@ -113,4 +113,5 @@ def nn_base(input_tensor=None, input_shape = (None,None,3),trainable = True):
 	x = conv_block(x, 3, [512, 512, 2048], stage=5, block='a',trainable=trainable)
 	x = identity_block(x, 3, [512, 512, 2048], stage=5, block='b',trainable=trainable)
 	x = identity_block(x, 3, [512, 512, 2048], stage=5, block='c',trainable=trainable)
+	x = GlobalAveragePooling2D()(x)
 	return x

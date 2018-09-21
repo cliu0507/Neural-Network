@@ -9,3 +9,6 @@ from web and put it under current folder
 ### How to run company url generator
 cd /Users/cliu/Documents/Github/nn/Image_Data_Collector
 python company_url_generator.py
+
+
+### last time, 1-1600 - 28000 = 27000+ 1000
